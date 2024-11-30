@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/Navbar.css';
-import navbarLogo from '../assets/navbarLogo.png';
+import navbarLogo from '../assets/lightLogo.png';
 const UnauthNavbar = () =>
 {
     return (
