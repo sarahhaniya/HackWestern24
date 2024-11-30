@@ -1,0 +1,60 @@
+.navbar {
+    background-color: #232c2f;
+    padding: 12px 35px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed; /* This fixes the navbar to the top */
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+.navbar-logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.navbar-logo {
+    height: 32px;
+    width: auto;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.nav-link {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #2a2a2a;
+}
+
+/* For responsiveness */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 10px 12px;
+    }
+    
+    .navbar-logo {
+        height: 28px;
+    }
+    
+    .nav-links {
+        gap: 16px;
+    }
+}
