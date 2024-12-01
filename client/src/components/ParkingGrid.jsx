@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/ParkingGrid.css';
 
 const generateDefaultSpots = () =>
@@ -6,27 +6,33 @@ const generateDefaultSpots = () =>
     const spotsPerRow = 19;
     const spots = [];
 
-    // Top row - all available
+    // Mock API response - in reality this would come from your backend
+    const mockApiCheck = (id) =>
+    {
+        // Simulate some spots being reserved - only these spots will be unavailable
+        const reservedSpots = ['A01', 'B03', 'C04', 'D05'];
+        return reservedSpots.includes(id) ? 'reserved' : 'available';  // Changed 'empty' to 'available'
+    };
+
+    // Top row
     for (let i = 0; i < spotsPerRow; i++)
     {
+        const id = `A${(i + 1).toString().padStart(2, '0')}`;
         spots.push({
-            id: `A${(i + 1).toString().padStart(2, '0')}`,
-            status: 'available'
+            id: id,
+            status: mockApiCheck(id)
         });
     }
 
-    // Three rows of mostly reserved spots
+    // Three rows
     ['B', 'C', 'D'].forEach(row =>
     {
         for (let i = 0; i < spotsPerRow * 2; i++)
         {
-            const isAvailable =
-                (row === 'B' && i === 3) ||
-                (row === 'C' && i === 1);
-
+            const id = `${row}${(i + 1).toString().padStart(2, '0')}`;
             spots.push({
-                id: `${row}${(i + 1).toString().padStart(2, '0')}`,
-                status: isAvailable ? (row === 'C' ? 'selected' : 'available') : 'reserved'
+                id: id,
+                status: mockApiCheck(id)
             });
         }
     });
@@ -34,67 +40,99 @@ const generateDefaultSpots = () =>
     return spots;
 };
 
-const ParkingSpace = ({ id, status, onClick }) =>
+const ParkingSpace = ({ id, status, isSelected, onClick }) =>
 {
+    let displayStatus;
+
+    if (status === 'reserved')
+    {
+        displayStatus = 'disabled';
+    } else if (isSelected)
+    {
+        displayStatus = 'selected';
+    } else
+    {
+        displayStatus = 'available';
+    }
+
     return (
         <div
-            className={`parking-space ${status}`}
-            onClick={() => onClick(id)}
+            className={`parking-space ${displayStatus}`}
+            onClick={() =>
+            {
+                if (status !== 'reserved')
+                {
+                    onClick(id);
+                    console.log(`Parking space ${id} clicked. Status: ${status}`);
+                }
+            }}
         >
             {id}
         </div>
     );
 };
 
-const ParkingGrid = ({ spots = generateDefaultSpots(), onSpotSelect = () => { } }) =>
+const ParkingGrid = () =>
 {
+    const [spots] = useState(generateDefaultSpots());
+    const [selectedSpot, setSelectedSpot] = useState(null);
+
+    const handleSpotSelect = (id) =>
+    {
+        setSelectedSpot(selectedSpot === id ? null : id);
+    };
+
     return (
         <div className="parking-card">
             <div className="parking-grid">
-                {/* Top row - all available */}
+                {/* Top row */}
                 <div className="parking-row">
                     {spots.slice(0, 19).map(spot => (
                         <ParkingSpace
                             key={spot.id}
                             id={spot.id}
                             status={spot.status}
-                            onClick={onSpotSelect}
+                            isSelected={selectedSpot === spot.id}
+                            onClick={handleSpotSelect}
                         />
                     ))}
                 </div>
 
-                {/* Second row - mostly reserved */}
+                {/* Second row */}
                 <div className="parking-row">
                     {spots.slice(19, 57).map(spot => (
                         <ParkingSpace
                             key={spot.id}
                             id={spot.id}
                             status={spot.status}
-                            onClick={onSpotSelect}
+                            isSelected={selectedSpot === spot.id}
+                            onClick={handleSpotSelect}
                         />
                     ))}
                 </div>
 
-                {/* Third row - mostly reserved with one selected */}
+                {/* Third row */}
                 <div className="parking-row">
                     {spots.slice(57, 95).map(spot => (
                         <ParkingSpace
                             key={spot.id}
                             id={spot.id}
                             status={spot.status}
-                            onClick={onSpotSelect}
+                            isSelected={selectedSpot === spot.id}
+                            onClick={handleSpotSelect}
                         />
                     ))}
                 </div>
 
-                {/* Bottom row - all reserved */}
+                {/* Bottom row */}
                 <div className="parking-row">
                     {spots.slice(95).map(spot => (
                         <ParkingSpace
                             key={spot.id}
                             id={spot.id}
                             status={spot.status}
-                            onClick={onSpotSelect}
+                            isSelected={selectedSpot === spot.id}
+                            onClick={handleSpotSelect}
                         />
                     ))}
                 </div>
