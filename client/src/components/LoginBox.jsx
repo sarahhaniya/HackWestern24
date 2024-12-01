@@ -71,7 +71,7 @@ const LoginBox = ({ setIsAuthenticated }) => {
         if (userType === "Admin") {
           navigate("/auth");
         } else {
-          navigate("/auth-user");
+          navigate("/bookingpage");
         }
       }
     } catch (error) {
