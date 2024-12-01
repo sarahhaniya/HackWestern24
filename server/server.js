@@ -9,26 +9,27 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 
+
 // Auth0 Config
 const AUTH0_DOMAIN = "dev-h32e7d3l5lrftxe4.us.auth0.com";
 const AUTH0_AUDIENCE = "https://dev-h32e7d3l5lrftxe4.us.auth0.com/api/v2/";
 const JWT_SECRET = "your_jwt_secret"; // Replace with a secure value in production
 
 // MongoDB Config
-const MONGO_URI = "mongodb+srv://seabar:12345@hackwestern11.rpeel.mongodb.net/?retryWrites=true&w=majority&appName=HackWestern11";
+const MONGO_URI = "mongodb+srv://oomeetka:Idunknow2@hackwestern11.rpeel.mongodb.net/HackWestern11?retryWrites=true&w=majority";
 const client = new MongoClient(MONGO_URI);
 
 // Middleware to check JWT
 const checkJwt = jwt({
-    secret: jwks.expressJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`, // Replace with your Auth0 domain
-    }),
-    audience: AUTH0_AUDIENCE, // Replace with your Auth0 audience
-    issuer: `https://${AUTH0_DOMAIN}/`, // Replace with your Auth0 domain
-    algorithms: ["RS256"],
+  secret: jwks.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${AUTH0_DOMAIN}/.well-known/jwks.json`,
+  }),
+  audience: AUTH0_AUDIENCE,
+  issuer: `https://${AUTH0_DOMAIN}/`,
+  algorithms: ["RS256"],
 });
 
 // Apply CORS middleware before defining routes
@@ -572,7 +573,199 @@ app.post("/api/clear-available-spots", async (req, res) => {
     }
   });
 
+  // Add this new endpoint to your server code
+
+app.get("/api/user/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email parameter is required"
+      });
+    }
+
+    const user = await db.collection("user").findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
+      });
+    }
+
+    // Remove sensitive information before sending response
+    const safeUserData = {
+      email: user.email,
+      is_signup: user.is_signup,
+      tenant: user.tenant,
+      runtime: user.runtime,
+      debug: user.debug,
+      usePasskey: user.usePasskey,
+      connection: user.connection
+    };
+
+    res.status(200).json({
+      success: true,
+      data: safeUserData
+    });
+
+  } catch (error) {
+    console.error("Error retrieving user:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to retrieve user information",
+      details: error.message
+    });
+  }
+});
+
+// Get all users (if needed)
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await db.collection("user").find({}).toArray();
+
+    // Remove sensitive information from all users
+    const safeUsersData = users.map(user => ({
+      email: user.email,
+      is_signup: user.is_signup,
+      tenant: user.tenant,
+      runtime: user.runtime,
+      debug: user.debug,
+      usePasskey: user.usePasskey,
+      connection: user.connection
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: safeUsersData
+    });
+
+  } catch (error) {
+    console.error("Error retrieving users:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to retrieve users",
+      details: error.message
+    });
+  }
+});
+
+// Add this endpoint to your server code
+app.get("/api/available-spots/:locationId", async (req, res) => {
+  try {
+    const { locationId } = req.params;
+
+    if (!locationId) {
+      return res.status(400).json({
+        success: false,
+        error: "Location ID is required"
+      });
+    }
+
+    const availableSpots = await db.collection("Available_Spots").find({
+      location_id: parseInt(locationId),
+      is_available: true
+    }).toArray();
+
+    res.status(200).json({
+      success: true,
+      data: availableSpots
+    });
+
+  } catch (error) {
+    console.error("Error retrieving available spots:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to retrieve available spots",
+      details: error.message
+    });
+  }
+});
+
+app.put("/api/available-spots/:locationId/:spotNumber", async (req, res) => {
+  try {
+    const { locationId, spotNumber } = req.params;
+
+    // Validate required parameters
+    if (!locationId || !spotNumber) {
+      return res.status(400).json({
+        success: false,
+        error: "Location ID and spot number are required",
+      });
+    }
+
+    // Calculate the expiration time (1 day from now)
+    const expirationTime = new Date();
+    expirationTime.setDate(expirationTime.getDate() + 1);
+
+    // Update the spot availability with expiration time
+    const result = await db.collection("Available_Spots").updateOne(
+      {
+        location_id: parseInt(locationId),
+        spot_number: parseInt(spotNumber),
+        is_available: true,
+      },
+      {
+        $set: {
+          is_available: false,
+          expiration_time: expirationTime,
+        },
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Spot not found or is not available",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Spot availability updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating spot availability:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update spot availability",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/api/reservations/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Find all reservations based on the email
+    const reservations = await db.collection("Reservations").find({ email }).toArray();
+
+    if (reservations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No reservations found for this email",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: reservations,
+    });
+  } catch (error) {
+    console.error("Error retrieving reservations:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to retrieve reservations",
+      details: error.message,
+    });
+  }
+});
+
 // Start the server
 app.listen(3000, () => {
     console.log("Server running on port 3000");
 });
+
