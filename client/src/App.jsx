@@ -1,24 +1,39 @@
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import './App.css'
-import UnauthView from './views/UnauthView'
-import LoginView from './views/LoginView'
-import RegisterView from './views/RegisterView'
+import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./App.css";
+import UnauthView from "./views/UnauthView";
+import LoginView from "./views/LoginView";
+import RegisterView from "./views/RegisterView";
+import AuthView from "./views/AuthView";
+import AuthUserView from "./views/AuthUserView";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-
-      <BrowserRouter>
-        <Routes>
+    <BrowserRouter>
+      <Routes>
         <Route path="/" element={<UnauthView />} />
-        <Route path="/login" element={<LoginView />} />
+        <Route
+          path="/login"
+          element={<LoginView setIsAuthenticated={setIsAuthenticated} />}
+        />
         <Route path="/register" element={<RegisterView />} />
-        </Routes>
-      </BrowserRouter>
-
-  )
+        <Route
+          path="/auth"
+          element={
+            isAuthenticated ? <AuthView /> : <Navigate to="/login" />
+          }
+        />
+        <Route
+          path="/auth-user"
+          element={
+            isAuthenticated ? <AuthUserView /> : <Navigate to="/login" />
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
