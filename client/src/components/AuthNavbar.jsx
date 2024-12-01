@@ -9,6 +9,12 @@ const AuthNavbar = () => {
                 </a>
             </div>
             <div className="nav-links">
+                <a href="/BookingPage" className="nav-link">Book</a>
+            </div>
+            <div className="nav-links">
+                <a href="/Reservationpage" className="nav-link">Reservations</a>
+            </div>
+            <div className="nav-links">
                 <a href="/" className="nav-link">SIGN OUT</a>
             </div>
         </nav>);
