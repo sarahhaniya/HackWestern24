@@ -6,6 +6,9 @@ import LoginView from "./views/LoginView";
 import RegisterView from "./views/RegisterView";
 import AuthView from "./views/AuthView";
 import AuthUserView from "./views/AuthUserView";
+import ReservationPage from "./components/Reservationpage";
+import BookingPage from "./components/BookingPage";
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,6 +16,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+      <Route path="/Reservationpage" element={<ReservationPage />} />
+      <Route path="/BookingPage" element={<BookingPage />} />
+
         <Route path="/" element={<UnauthView />} />
         <Route
           path="/login"
