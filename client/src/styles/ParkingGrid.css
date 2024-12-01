@@ -1,0 +1,69 @@
+.parking-card {
+    padding: 32px;
+    background-color: #f3f4f6;
+    width: 100%;
+    max-width: 1200px;
+    height: 800px;
+    overflow: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.parking-grid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+}
+
+.parking-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(19, 1fr);
+    gap: 4px;
+}
+
+.parking-space {
+    width: 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.parking-space.available {
+    background-color: #22c55e;
+    color: white;
+}
+
+.parking-space.reserved {
+    background-color: #ef4444;
+    color: white;
+}
+
+.parking-space.selected {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.parking-space:hover {
+    transform: scale(1.05);
+}
+
+.parking-space.available:hover {
+    background-color: #16a34a;
+}
+
+.parking-space.reserved:hover {
+    background-color: #dc2626;
+}
+
+.parking-space.selected:hover {
+    background-color: #2563eb;
+}
