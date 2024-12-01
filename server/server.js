@@ -525,6 +525,53 @@ app.post("/api/clear-available-spots", async (req, res) => {
     }
   });
 
+  app.get("/api/user-reservations/:reservationId", async (req, res) => {
+    try {
+      const { reservationId } = req.params;
+      const { user_email } = req.query;
+  
+      if (!user_email) {
+        return res.status(400).json({
+          success: false,
+          error: "User email is required"
+        });
+      }
+  
+      const reservation = await db.collection("Reservations").findOne({
+        reservation_id: parseInt(reservationId),
+        email: user_email
+      });
+  
+      if (!reservation) {
+        return res.status(404).json({
+          success: false,
+          error: "Reservation not found"
+        });
+      }
+  
+      // Get location details
+      const location = await db.collection("Parking_Locations").findOne({
+        location_id: reservation.location_id
+      });
+  
+      res.status(200).json({
+        success: true,
+        data: {
+          ...reservation,
+          location_details: location || null
+        }
+      });
+  
+    } catch (error) {
+      console.error("Error retrieving reservation:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to retrieve reservation",
+        details: error.message
+      });
+    }
+  });
+
 // Start the server
 app.listen(3000, () => {
     console.log("Server running on port 3000");
