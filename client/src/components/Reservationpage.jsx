@@ -1,70 +1,161 @@
-import { useState } from "react";
-import ConfirmationHeader from "./reservation/ConfirmationHeader";
-import ReservationDetails from "./reservation/ReservationDetails";
-import InteractiveMap from "./reservation/InteractiveMap";
-import ActionButtons from "./reservation/ActionButtons";
-import CancellationDialog from "./reservation/CancellationDialog";
-import ModificationSheet from "./reservation/ModificationSheet";
+import React, { useState } from 'react';
+import AuthNavbar from './AuthNavbar';
+import parkinglotpic from '../assets/parkinglot.png';
 
-function Home() {
-  const [showCancellationDialog, setShowCancellationDialog] = useState(false);
-  const [showModificationSheet, setShowModificationSheet] = useState(false);
+const ReservationPage = () => {
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchEmail, setSearchEmail] = useState('');
 
-  const handleModify = () => {
-    setShowModificationSheet(true);
+  const handleSearch = async () => {
+    if (!searchEmail) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setReservations([]);
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/reservations/${searchEmail}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setReservations(data.data);
+      } else {
+        setError(data.error || 'No reservations found for this email.');
+      }
+    } catch (err) {
+      setError('Failed to fetch reservations. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCancel = () => {
-    setShowCancellationDialog(true);
-  };
-
-  const handleGetDirections = () => {
-    // Placeholder for directions functionality
-    window.open("https://maps.google.com", "_blank");
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      backgroundColor: '#121212',
+      color: '#ffffff',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      paddingTop: '4rem',
+    },
+    searchSection: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: '2rem',
+    },
+    searchInput: {
+      width: '300px',
+      padding: '0.5rem',
+      fontSize: '1rem',
+      borderRadius: '8px 0 0 8px',
+      border: '1px solid #4a5568',
+      outline: 'none',
+    },
+    searchButton: {
+      padding: '0.5rem 1rem',
+      fontSize: '1rem',
+      borderRadius: '0 8px 8px 0',
+      border: 'none',
+      backgroundColor: '#4299e1',
+      color: '#ffffff',
+      cursor: 'pointer',
+      outline: 'none',
+    },
+    mainContent: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: '800px',
+    },
+    reservationCard: {
+      backgroundColor: '#1f2937',
+      borderRadius: '8px',
+      padding: '10px',
+      marginBottom: '1rem',
+      width: '100%',
+    },
+    detailRow: {
+      display: 'flex',
+      gap: '1rem',
+      marginBottom: '0.5rem',
+    },
+    label: {
+      minWidth: '150px',
+      color: '#cbd5e0',
+      fontWeight: 'bold',
+    },
+    value: {
+      color: '#ffffff',
+    },
+    noReservations: {
+      fontSize: '1.5rem',
+      textAlign: 'center',
+      color: '#ffffff',
+      marginTop: '2rem',
+    },
+    errorMessage: {
+      color: '#e53e3e',
+      textAlign: 'center',
+      marginTop: '1rem',
+    },
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <ConfirmationHeader />
+    <div style={styles.container}>
+      <AuthNavbar />
+      <div style={styles.searchSection}>
+        <input
+          type="email"
+          placeholder="Enter email to search reservations"
+          value={searchEmail}
+          onChange={(e) => setSearchEmail(e.target.value)}
+          style={styles.searchInput}
+        />
+        <button onClick={handleSearch} style={styles.searchButton}>
+          Search
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4">
-            <ReservationDetails />
+      <div style={styles.mainContent}>
+        {loading && <div>Loading reservations...</div>}
+        {error && <div style={styles.errorMessage}>{error}</div>}
+        {reservations.length === 0 && !loading && !error && (
+          <div style={styles.noReservations}>No reservations found.</div>
+        )}
+        {reservations.map((reservation) => (
+          <div key={reservation._id} style={styles.reservationCard}>
+            <div style={styles.detailRow}>
+              <span style={styles.label}>Parking Spot:</span>
+              <span style={styles.value}>{reservation.spot_number}</span>
+            </div>
+            <div style={styles.detailRow}>
+              <span style={styles.label}>Date:</span>
+              <span style={styles.value}>
+                {new Date(reservation.reservation_date).toLocaleDateString()}
+              </span>
+            </div>
+            <div style={styles.detailRow}>
+              <span style={styles.label}>Accommodations:</span>
+              <span style={styles.value}>
+                {reservation.is_accessibility_spot && 'Wheelchair Accessible '}
+                {reservation.is_ev && 'EV '}
+                {reservation.is_bigger && 'Larger Spot '}
+                {reservation.is_expecting && 'Expectant Mother '}
+              </span>
+            </div>
           </div>
-
-          <div className="lg:col-span-8">
-            <InteractiveMap />
-          </div>
-        </div>
-
-        <ActionButtons
-          onModify={handleModify}
-          onCancel={handleCancel}
-          onGetDirections={handleGetDirections}
-        />
-
-        <CancellationDialog
-          open={showCancellationDialog}
-          onCancel={() => setShowCancellationDialog(false)}
-          onConfirm={() => {
-            setShowCancellationDialog(false);
-            // Handle cancellation logic here
-          }}
-        />
-
-        <ModificationSheet
-          open={showModificationSheet}
-          onClose={() => setShowModificationSheet(false)}
-          onSave={(data) => {
-            setShowModificationSheet(false);
-            // Handle save modifications logic here
-            console.log("Modified data:", data);
-          }}
-        />
+        ))}
       </div>
     </div>
   );
-}
+};
 
-export default Home;
+export default ReservationPage;
